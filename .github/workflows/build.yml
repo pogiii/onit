@@ -1,18 +1,13 @@
-name: Build Tauri App
+name: Build Tauri App for Windows
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    tags:
+      - 'v*'
 
 jobs:
   build:
-    strategy:
-      matrix:
-        platform: [windows-latest, macos-latest, ubuntu-latest]
-    
-    runs-on: ${{ matrix.platform }}
+    runs-on: windows-latest
     
     steps:
     - uses: actions/checkout@v4
@@ -25,7 +20,7 @@ jobs:
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
       with:
-        targets: x86_64-pc-windows-msvc,x86_64-apple-darwin,x86_64-unknown-linux-gnu
+        targets: x86_64-pc-windows-msvc
     
     - name: Install pnpm
       uses: pnpm/action-setup@v2
@@ -43,10 +38,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        args: --target ${{ matrix.platform == 'windows-latest' && 'x86_64-pc-windows-msvc' || matrix.platform == 'macos-latest' && 'x86_64-apple-darwin' || 'x86_64-unknown-linux-gnu' }}
+        args: --target x86_64-pc-windows-msvc
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.platform }}-tauri-app
+        name: windows-tauri-app
         path: src-tauri/target/release/bundle/ 
