@@ -1,9 +1,17 @@
-name: Build Tauri App for Windows
+name: Manual Release Build
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Is this a prerelease?'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -35,23 +43,14 @@ jobs:
     - name: Build frontend
       run: pnpm build
     
-    - name: List build artifacts (debug)
-      run: |
-        echo "Checking build output directories..."
-        if (Test-Path "src-tauri/target/release/bundle") {
-          Get-ChildItem -Path "src-tauri/target/release/bundle" -Recurse -File | Select-Object FullName, Length
-        } else {
-          echo "Bundle directory not found"
-        }
-    
     - name: Build Tauri app and create release
       uses: tauri-apps/tauri-action@v0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         args: --target x86_64-pc-windows-msvc
-        tagName: ${{ github.ref_name }}
-        releaseName: 'Release ${{ github.ref_name }}'
-        releaseBody: 'See the assets to download this version and install.'
+        tagName: ${{ github.event.inputs.version }}
+        releaseName: 'Release ${{ github.event.inputs.version }}'
+        releaseBody: 'Manual release build. See the assets to download this version and install.'
         releaseDraft: false
-        prerelease: false 
+        prerelease: ${{ github.event.inputs.prerelease }} 
