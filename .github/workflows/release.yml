@@ -43,14 +43,14 @@ jobs:
     - name: Build frontend
       run: pnpm build
     
-    - name: Build Tauri app and create release
-      uses: tauri-apps/tauri-action@v0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build Tauri app
+      run: pnpm tauri build --target x86_64-pc-windows-msvc
+    
+    - name: Upload Windows executables
+      uses: actions/upload-artifact@v4
       with:
-        args: --target x86_64-pc-windows-msvc
-        tagName: ${{ github.event.inputs.version }}
-        releaseName: 'Release ${{ github.event.inputs.version }}'
-        releaseBody: 'Manual release build. See the assets to download this version and install.'
-        releaseDraft: false
-        prerelease: ${{ github.event.inputs.prerelease }} 
+        name: windows-executables-${{ github.event.inputs.version }}
+        path: |
+          src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
+          src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+        if-no-files-found: error 
